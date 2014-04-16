@@ -3,12 +3,9 @@ public class Vehicle {
     double vel = 0;   // (m/s)
     double accel = 0; // (m/s^2)
     Strategy personality;
-    
+
     /**
      * @param mass The mass of the car (kg)
-     * @param aimVelocity The speed aimed at driving (m/s)
-     * @param aimAcceleration How fast does driver accelerate?
-     * @param advance Distance to resting obstacle that makes driver brake. (m)
      */
     public Vehicle(double mass, Personality personality) {
         this.mass = mass;

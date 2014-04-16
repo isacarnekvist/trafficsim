@@ -7,6 +7,11 @@ public class Personality {
     // How fast does driver want to accelerate? (m/s^2)
     double aimAcceleration;
 
+    /**
+     * @param aimVelocity The speed aimed at driving (m/s)
+     * @param aimAcceleration How fast does driver accelerate?
+     * @param advance Distance to resting obstacle that makes driver brake. (m)
+     */
     public Personality(double aimVelocity, double aimAcceleration, double foresightDistance) {
         if (aimVelocity <= 0 || aimAcceleration <= 0 || foresightDistance <= 0) {
             throw new IllegalArgumentException();
