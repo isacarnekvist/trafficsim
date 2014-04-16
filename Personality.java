@@ -22,7 +22,14 @@ public class Personality {
         this.foresightDistance = foresightDistance;
     }
 
-    public double input(Vehicle mine, Vehicle next) {
-        return 0.0;
+    /**
+     * Get acceleration given where my car is, and the next.
+     *
+     * @param mine My car
+     * @param next Next car in line
+     * @return Acceleration in m/s^2
+     */
+    public double getAcceleration(Vehicle mine, Vehicle next) {
+        return 1;
     }
 }
