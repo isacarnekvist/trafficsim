@@ -36,17 +36,18 @@ public class Vehicle {
 		nextCarDistance = distance;
 		nextCarVelocity = velocity;
 		
-		// Räkna här ut hur vi ska anpassa hastigheten, eller kalla på en funktion som gör det.
+		// Calculate how to adjust speed, or call function that does
 	}
 	
 	/**
 	 * @return How many Joules per second this vehicle consumes at the moment.
 	 */
 	double getCurrentWattage() {
-		double k = 0.12345; // Detta är samma som 0.5*C*p*A i formeln för vindmotståndskraft
-						            // den bör kanske bero på roten ur massan, då den beror på arean A
-		
-		//		  	motoreffekt vindeffekt
+		double k = 0.12345; // This is the same as 0.5*C*p*A in the formula for 
+							// air resistance force.
+							// should maybe depend on sqrt(mass) because of its front area
+							
+		// mva + kv^3 = motor effect + wind effect
 		double Ptot = v*(m*a + k*v*v);
 		
 		if (Ptot > 0.0) {
