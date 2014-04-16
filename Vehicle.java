@@ -1,13 +1,15 @@
 public class Vehicle {
     double mass;      // (kg)
+    double pos = 0;   // (m)
     double vel = 0;   // (m/s)
     double accel = 0; // (m/s^2)
-    Strategy personality;
+    Personality personality;
 
     /**
      * @param mass The mass of the car (kg)
      */
-    public Vehicle(double mass, Personality personality) {
+    public Vehicle(double mass, double pos, Personality personality) {
+        this.pos = pos;
         this.mass = mass;
         this.personality = personality;
     }

@@ -1,20 +1,25 @@
-import java.awt.Frame;
 import java.awt.Graphics;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
 import java.util.ArrayList;
 
 public class UI {
 	
-	private Frame frame;
+	private JFrame frame;
 	private double meterswide;
 	private ArrayList<Integer> positions;
 	private Graphics g;
 	
 	public UI(double meterswide) {
 		this.meterswide = meterswide;
-		frame = new Frame();
+		frame = new JFrame();
 		frame.setBounds(200, 100, 800, 600);
 		frame.setVisible(true);
-		g = frame.getGraphics();
+        frame.add(new JPanel());
+        JPanel panel = new JPanel();
+        frame.add(panel);
+        panel.setDoubleBuffered(true);
+		this.g = panel.getGraphics();
 		positions = new ArrayList<Integer>();
 	}
 	
