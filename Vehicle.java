@@ -4,6 +4,7 @@ public class Vehicle {
 	private double v;	// velocity (m/s)
 	private double a;	// acceleration (m/s^2)
 	
+	// This is no good!!! Better definition anyone?
 	// How many meters in advance does driver brake before a resting obstacle? (m)
 	private double advance;
 	// What speed does driver have if possible? (m/s)
