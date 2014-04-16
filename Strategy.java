@@ -22,5 +22,5 @@ public class Personality {
         this.foresightDistance = foresightDistance;
     }
 
-    public abstract double input(Vehicle mine, Vehicle next);
+    public double input(Vehicle mine, Vehicle next);
 }
