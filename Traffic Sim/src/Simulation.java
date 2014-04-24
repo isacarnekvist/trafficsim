@@ -17,6 +17,7 @@ public class Simulation {
     JPanel panel;
 	Graphics g;
 	ArrayList<Vehicle> vehicles;
+	int foo;
 
     public static void main(String[] args) {
         Simulation s = new Simulation(100, 500);
