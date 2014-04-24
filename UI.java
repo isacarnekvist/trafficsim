@@ -9,6 +9,7 @@ public class UI {
 	private double meterswide;
 	private ArrayList<Integer> positions;
 	private Graphics g;
+	public int foo;
 	
 	public UI(double meterswide) {
 		this.meterswide = meterswide;
