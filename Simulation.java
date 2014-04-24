@@ -3,7 +3,10 @@
 import java.util.ArrayList;
 import java.awt.Graphics;
 import java.awt.Dimension;
+import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferStrategy;
+
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
@@ -29,7 +32,6 @@ public class Simulation {
         frame.add(panel);
         panel.setDoubleBuffered(true);
 		frame.setVisible(true);
-		this.g = panel.getGraphics();
 		vehicles = new ArrayList<Vehicle>();
 	}
 	
@@ -42,14 +44,20 @@ public class Simulation {
             double m = (1.0 + Math.random()) * 1e3;
             Vehicle v = new Vehicle(m, 0, new Personality(1, 2, 3));
             v.vel = 1;
+            v.pos = 5*i;
             vehicles.add(v);
             System.out.println(v);
         }
-
+        
+        frame.createBufferStrategy(2);
+        BufferStrategy buffStrat = frame.getBufferStrategy();
+        
         // make them bounce
         double ySpeeds = 1.0;
         long timePrev = System.nanoTime();
         while (ySpeeds > 0) {
+        	g = buffStrat.getDrawGraphics();
+        	g.clearRect(0, 0, panel.getWidth(), panel.getHeight());
             long timeStart = System.nanoTime();
             double t = (timeStart - timePrev)/1e9;
             Vehicle p = null;
@@ -65,6 +73,18 @@ public class Simulation {
                 }
                 p = v;
             }
+            g.dispose();
+            buffStrat.show();
+            long deltaMs = (System.nanoTime() - timeStart)/(long)1e6;
+            long wait = 1000/60 - deltaMs;
+            if(wait < 0) {
+            	wait = 0;
+            }
+            try {
+				Thread.sleep(wait);
+			} catch (InterruptedException e) {
+				// TODO Screen sync + fix slow mother f**king car
+			}
             timePrev = timeStart;
         }
     }
