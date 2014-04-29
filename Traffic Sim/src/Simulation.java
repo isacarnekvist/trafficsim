@@ -18,10 +18,10 @@ public class Simulation {
 	Graphics g;
 	ArrayList<Vehicle> vehicles;
 
-    public static void main(String[] args) {
+    /*public static void main(String[] args) {
         Simulation s = new Simulation(100, 500);
         s.run();
-    }
+    }*/
 
 	public Simulation(double width, int screenWidth) {
 		this.width = width;
