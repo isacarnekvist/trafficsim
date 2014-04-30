@@ -8,6 +8,8 @@ import java.util.Iterator;
 
 public class GTA {
 	
+	private final int fps = 60;		// Frames per second
+	private final int ppm = 10;		// Pixels per meter, also set in Vehicle.java, pro-programmer style ;)
 	private final int width = 1080;
 	private final int height = 600;
 	private final int NUM_CAR_MODELS = 7;
@@ -42,38 +44,49 @@ public class GTA {
 		vehicles.addLast(new Vehicle(rand.nextInt(NUM_CAR_MODELS), 0, new Personality(30, 5, 70)));
 		
 		for(int i = 0; i < 9; i++) {
-			vehicles.addFirst(new Vehicle(rand.nextInt(7), vehicles.getFirst().pos+150, new Personality(30, 5, 70)));
+			vehicles.addFirst(new Vehicle(rand.nextInt(7), vehicles.getFirst().pos+20, new Personality(30, 5, 70)));
 		}
 		
 		while(!Display.isCloseRequested()){
 			glClear(GL_COLOR_BUFFER_BIT);
 			
+			// ROAD!
 			for(int i = 0; i < width; i += 64) {
 				road.draw(i, 236);
 			}
 			
+			// Notify cars of distances
+			Vehicle nextCar = null;
+			for(Vehicle v : vehicles) {
+				if(nextCar != null) {
+					v.setNextCarData(nextCar.pos, nextCar.vel, nextCar.accel);
+				}
+				nextCar = v;
+			}
+			
+			// Draw or delete if outside screen
 			boolean removedVehicle = false;
 			Iterator<Vehicle> it = vehicles.iterator();
 			while (it.hasNext()) {
 				Vehicle v = it.next();
-				if(v.pos > width) {	// Delete if outside of screen
+				if(v.pos > width/ppm) {	// Delete if outside of screen
 					it.remove();
 					removedVehicle = true;
 				} else {
-					v.pos += 2;
-					v.draw();
+					v.draw(1000/fps);
 				}
 			}
 			
+			// Create new cars
 			if(removedVehicle) {
 				Vehicle v = new Vehicle(rand.nextInt(NUM_CAR_MODELS),
-						vehicles.getLast().pos - 150,
+						vehicles.getLast().pos - 20,
 						new Personality(30, 5, 70));
 				vehicles.addLast(v);
 			}
 			
 			Display.update();
-			Display.sync(60);
+			Display.sync(fps);
 		}
 		Display.destroy();
 	}

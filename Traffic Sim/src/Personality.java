@@ -21,15 +21,9 @@ public class Personality {
         this.aimAcceleration = aimAcceleration;
         this.foresightDistance = foresightDistance;
     }
-
-    /**
-     * Get acceleration given where my car is, and the next.
-     *
-     * @param mine My car
-     * @param next Next car in line
-     * @return Acceleration in m/s^2
-     */
-    public double getAcceleration(Vehicle mine, Vehicle next) {
-        return 1;
+    
+    public double getWantedAcceleration(double dist, double vel, double acc, double myVel) {
+    	// TODO This is where the magic happens!
+    	return 0;
     }
 }

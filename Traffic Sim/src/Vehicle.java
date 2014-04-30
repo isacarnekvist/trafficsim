@@ -1,10 +1,16 @@
 public class Vehicle {
+	final double ppm = 10; // Pixels per meter, also set in GTA.java (not very neat, I know)
     double mass;      // (kg)
     double pos = 0;   // (m)
     double vel = 0;   // (m/s)
     double accel = 0; // (m/s^2)
     Personality personality;
     private Sprite sprite;
+    
+    // Next car data
+    private double nextDist; // (m)
+    private double nextVel;  // (m/s)
+    private double nextAcc;  // (m/s^2)
 
     /**
      * Constructor
@@ -49,14 +55,36 @@ public class Vehicle {
 			System.exit(1);
 			break;
         }
+        
+        // Initial speed
+        vel = 10;
+    }    
+    
+    
+    public void setNextCarData(double dist, double vel, double acc) {
+    	nextAcc = acc;
+    	nextDist = dist;
+    	nextVel = vel;
     }
     
-    public int getWidth() {
-    	return sprite.getWidth();
+    public double getLength() {
+    	return sprite.getWidth()*ppm;
     }
     
-    public void draw() {
-    	sprite.draw((int)pos, 270-sprite.getHeight()/2);
+    public double getMyAssPosition() {
+    	return pos;
+    }
+    
+    /**
+     * First: Calculate speed and acceleration depending on next car.
+     * Second: Draw me!
+     * @param deltaMs
+     */
+    public void draw(int deltaMs) {
+    	// v = at + v0
+    	vel = personality.getWantedAcceleration(nextDist, nextVel, nextAcc, vel)*deltaMs/1000 + vel;
+    	pos += vel*deltaMs/1000;
+    	sprite.draw((int)(pos*ppm), 270-sprite.getHeight()/2);
     }
 
     /**
