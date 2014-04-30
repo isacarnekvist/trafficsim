@@ -83,6 +83,9 @@ public class Vehicle {
     public void draw(int deltaMs) {
     	// v = at + v0
     	vel = personality.getWantedAcceleration(nextDist, nextVel, nextAcc, vel)*deltaMs/1000 + vel;
+    	if (vel < 0) { // No backing up cars please.
+    		vel = 0;
+    	}
     	pos += vel*deltaMs/1000;
     	sprite.draw((int)(pos*ppm), 270-sprite.getHeight()/2);
     }
