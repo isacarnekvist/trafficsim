@@ -23,7 +23,10 @@ public class Personality {
     }
     
     public double getWantedAcceleration(double dist, double vel, double acc, double myVel) {
-    	// TODO This is where the magic happens!
-    	return 0;
+    	if (dist > 10) {
+    		return 1;
+    	} else {
+    		return -1/(0.1 + Math.pow(dist, 4));
+    	}
     }
 }

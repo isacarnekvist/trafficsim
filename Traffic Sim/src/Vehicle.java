@@ -68,7 +68,7 @@ public class Vehicle {
     }
     
     public double getLength() {
-    	return sprite.getWidth()*ppm;
+    	return sprite.getWidth()/ppm;
     }
     
     public double getMyAssPosition() {
