@@ -24,9 +24,9 @@ public class Personality {
     
     public double getWantedAcceleration(double dist, double vel, double acc, double myVel) {
     	if (dist > 10) {
-    		return 1;
+    		return 2;
     	} else {
-    		return -1/(0.1 + Math.pow(dist, 4));
+    		return -60/(Math.pow(dist, 4));
     	}
     }
 }
