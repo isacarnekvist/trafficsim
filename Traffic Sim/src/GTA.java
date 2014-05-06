@@ -24,7 +24,7 @@ public class GTA {
 	public static void main(String[] args){
 		new GTA();
 	}
-		
+
 	private GTA(){
 		try {
 			Display.setDisplayMode(new DisplayMode(width, height));
@@ -51,73 +51,59 @@ public class GTA {
 		
 		Sprite road = new Sprite("res/road.png", 128, 128);
 		Random rand = new Random();
-		
-		vehicles = new LinkedList<Vehicle>();
-		vehicles.addLast(new Vehicle(rand.nextInt(NUM_CAR_MODELS), 0, new Personality(30, 5, 70)));
-		
+
+        vehicles = new LinkedList<Vehicle>();
+
+        RoadBlock roadBlock = new RoadBlock(3*width/3/ppm);
+
 		for(int i = 0; i < 7; i++) {
-			vehicles.addFirst(new Vehicle(rand.nextInt(7), vehicles.getFirst().pos+20, new Personality(30, 5, 70)));
+            Vehicle v = new Vehicle(rand.nextInt(7), -i * 100, null);
+            v.personality = Personality.standardDriver(v);
+			vehicles.addFirst(v);
 		}
-		
+
 		while(!Display.isCloseRequested()){
 			glClear(GL_COLOR_BUFFER_BIT);
+
+            int nVehicles = vehicles.size();
 			
 			// ROAD!
-			for(int i = 0; i < width; i += 64) {
+			for (int i = 0; i < width; i += 64) {
 				road.draw(i, 236);
 			}
 			
-			// Notify cars of distances
-			Vehicle nextCar = null;
-			for(Vehicle v : vehicles) {
-				if(nextCar != null) {
-					v.setNextCarData(nextCar.pos - v.pos - v.getLength(), // Distance to next
-							nextCar.vel, nextCar.accel);
-				} else { // Let last car be in front of first, otherwise weird performance, better solution?
-					Vehicle firstCar = vehicles.getLast();
-					v.setNextCarData(width/ppm - v.pos - v.getLength() + firstCar.pos,
-							firstCar.vel, firstCar.accel);
-				}
-				nextCar = v;
-			}
-			
-			// Calculate and draw info
-			double currentWattage = 0;
-			for (Vehicle v : vehicles) {
-				currentWattage += v.getCurrentWattage();
-			}
-			infoText.drawString(10, 10, "CURRENT WATTAGE: " + (int)currentWattage, Color.yellow);
-			Color.white.bind();
-			
-			// Draw or delete if outside screen
-			boolean removedVehicle = false;
-			Iterator<Vehicle> it = vehicles.iterator();
-			while (it.hasNext()) {
-				Vehicle v = it.next();
-				if(v.pos > width/ppm) {	// Delete if outside of screen
+            Vehicle n = roadBlock;
+			for (Iterator<Vehicle> it = vehicles.iterator(); it.hasNext();) {
+                Vehicle v = it.next();
+                // Delete vehicles that stand still next to road block
+				if ((Math.abs(v.pos - roadBlock.pos + v.getLength()) < 25.0/ppm) && (Math.abs(v.accel) < 0.1) && (Math.abs(v.vel) < 0.1)) {
+                    System.out.println(String.format("Remove vehicle %s", v));
 					it.remove();
-					removedVehicle = true;
 				} else {
-					v.draw(1000/fps);
-				}
+                    v.simulate(1.0/fps, n);
+                }
+                n = v;
 			}
-			
+
 			// Create new cars
-			if(removedVehicle) {
-				Vehicle v = new Vehicle(rand.nextInt(NUM_CAR_MODELS),
-						0,
-						new Personality(30, 5, 70));
-				
-				double newPos = vehicles.getLast().pos - v.getLength() - 1;
-				if (newPos + v.getLength() > 0) {
-					v.pos = -v.getLength();
-				} else {
-					v.pos = newPos;
-				}
-				vehicles.addLast(v);
+			while (nVehicles > vehicles.size()) {
+				Vehicle v = new Vehicle(rand.nextInt(NUM_CAR_MODELS), 0, null);
+                v.pos = -v.getLength();
+                v.personality = Personality.standardDriver(v);
+                vehicles.addLast(v);
 			}
-			
-			Display.update();
+
+            // Calculate and draw info, cars
+            double currentWattage = 0;
+            for (Vehicle v : vehicles) {
+                currentWattage += v.getCurrentWattage();
+                v.draw();
+                infoText.drawString((int)(v.pos*ppm), 300-v.sprite.getHeight()/2, String.format("%.2f km/h", v.vel*3.6), Color.yellow);
+            }
+            infoText.drawString(10, 10, String.format("CURRENT WATTAGE: %.3f W", currentWattage), Color.yellow);
+            Color.white.bind();
+
+            Display.update();
 			Display.sync(fps);
 		}
 		Display.destroy();

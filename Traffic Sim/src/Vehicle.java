@@ -1,3 +1,5 @@
+import org.newdawn.slick.Color;
+
 public class Vehicle {
 	final double ppm = 10; // Pixels per meter, also set in GTA.java (not very neat, I know)
     double mass;      // (kg)
@@ -5,13 +7,8 @@ public class Vehicle {
     double vel = 0;   // (m/s)
     double accel = 0; // (m/s^2)
     Personality personality;
-    private Sprite sprite;
+    Sprite sprite;
     
-    // Next car data
-    private double nextDist; // (m)
-    private double nextVel;  // (m/s)
-    private double nextAcc;  // (m/s^2)
-
     /**
      * Constructor
      * @param vehicleType
@@ -57,15 +54,9 @@ public class Vehicle {
         }
         
         // Initial speed
-        vel = 10;
+        vel = 25;
     }    
     
-    
-    public void setNextCarData(double dist, double vel, double acc) {
-    	nextAcc = acc;
-    	nextDist = dist;
-    	nextVel = vel;
-    }
     
     public double getLength() {
     	return sprite.getWidth()/ppm;
@@ -76,18 +67,26 @@ public class Vehicle {
     }
     
     /**
-     * First: Calculate speed and acceleration depending on next car.
-     * Second: Draw me!
-     * @param deltaMs
+     * Simulate movement of car
+     *
+     * @param time Time elapsed passed since last simulation (seconds)
+     * @param next Next vehicle, null if no next vehicle exists
      */
-    public void draw(int deltaMs) {
-    	// v = at + v0
-    	vel = personality.getWantedAcceleration(nextDist, nextVel, nextAcc, vel)*deltaMs/1000 + vel;
-    	if (vel < 0) { // No backing up cars please.
-    		vel = 0;
-    	}
-    	pos += vel*deltaMs/1000;
-    	sprite.draw((int)(pos*ppm), 270-sprite.getHeight()/2);
+    public void simulate(double time, Vehicle next) {
+        accel = personality.getWantedAcceleration(this, next);
+        // Approximate a smoother simulation by integrating "in the middle" of
+        // each quantized acceleration segment. See Riemann sums for theory.
+        double deltaVel = accel*time/2.0;
+        vel += deltaVel;
+    	pos += vel*time;
+        vel += deltaVel;
+    }
+
+    /**
+     * Draw car on sprite
+     */
+    public void draw() {
+        sprite.draw((int)(pos*ppm), 270-sprite.getHeight()/2);
     }
 
     /**
@@ -104,7 +103,7 @@ public class Vehicle {
         if (Ptot > 0.0) {
             return Ptot;
         } else {
-            return 0.0;
+            return Ptot;
         }
     }
     
