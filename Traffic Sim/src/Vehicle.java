@@ -73,13 +73,23 @@ public class Vehicle {
      * @param next Next vehicle, null if no next vehicle exists
      */
     public void simulate(double time, Vehicle next) {
-        accel = personality.getWantedAcceleration(this, next);
+    	double deltaPos = next.pos - this.pos;
+    	accel = personality.getWantedAcceleration(this, next);
         // Approximate a smoother simulation by integrating "in the middle" of
         // each quantized acceleration segment. See Riemann sums for theory.
-        double deltaVel = accel*time/2.0;
-        vel += deltaVel;
-    	pos += vel*time;
-        vel += deltaVel;
+        
+    	int integrations = 100000;
+    	double deltaVel = accel*time/integrations;
+    	double timePerIntegration = time/integrations;
+        
+        for (int i = 0; i < integrations; i++) {
+        	vel += deltaVel;
+        	pos += vel*timePerIntegration;
+		}       
+        
+        // Cars on the road doesn't go backwards.
+        if(vel < 0)
+        	vel = 0;
     }
 
     /**
