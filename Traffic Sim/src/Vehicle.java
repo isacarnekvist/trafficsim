@@ -103,7 +103,7 @@ public class Vehicle {
         if (Ptot > 0.0) {
             return Ptot;
         } else {
-            return Ptot;
+            return 0;
         }
     }
     

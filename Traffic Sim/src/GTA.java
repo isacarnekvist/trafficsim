@@ -59,7 +59,7 @@ public class GTA {
 		for(int i = 0; i < 7; i++) {
             Vehicle v = new Vehicle(rand.nextInt(7), -i * 100, null);
             v.personality = Personality.standardDriver(v);
-			vehicles.addFirst(v);
+			vehicles.addLast(v);
 		}
 
 		while(!Display.isCloseRequested()){
