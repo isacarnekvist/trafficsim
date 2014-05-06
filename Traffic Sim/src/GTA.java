@@ -5,7 +5,6 @@ import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 
 import java.awt.Font;
-import java.util.Random;
 import java.util.LinkedList;
 import java.util.Iterator;
 
@@ -13,12 +12,13 @@ import org.newdawn.slick.Color;
 import org.newdawn.slick.TrueTypeFont;
 
 public class GTA {
-	
-	private final int fps = 60;		// Frames per second
-	private final int ppm = 10;		// Pixels per meter, also set in Vehicle.java, pro-programmer style ;)
-	private final int width = 1080;
-	private final int height = 600;
-	private final int NUM_CAR_MODELS = 7;
+
+    static final boolean vSync = false;
+	static final int fps = 60;		// Frames per second
+	static final int ppm = 10;		// Pixels per meter
+	static final int width = 1080;
+	static final int height = 600;
+
 	private LinkedList<Vehicle> vehicles;
 
 	public static void main(String[] args){
@@ -29,7 +29,7 @@ public class GTA {
 		try {
 			Display.setDisplayMode(new DisplayMode(width, height));
 			Display.setTitle("Simulator");
-			Display.setVSyncEnabled(true);
+			Display.setVSyncEnabled(vSync);
 			Display.create();
 		} catch (LWJGLException e) {
 			System.err.println("Display error");
@@ -50,23 +50,21 @@ public class GTA {
 		glDisable(GL_LIGHTING);
 		
 		Sprite road = new Sprite("res/road.png", 128, 128);
-		Random rand = new Random();
 
         vehicles = new LinkedList<Vehicle>();
+        int nVehicles = 11;
 
-        RoadBlock roadBlock = new RoadBlock(3*width/3/ppm);
+        // A roadblock that is one half width off-screen, makes the cars halt
+        RoadBlock roadBlock = new RoadBlock((width-150)/ppm);
 
-		for(int i = 0; i < 7; i++) {
-            Vehicle v = new Vehicle(rand.nextInt(7), -i * 100, null);
-            v.personality = Personality.standardDriver(v);
-			vehicles.addFirst(v);
-		}
+        long timePrev = System.nanoTime();
 
 		while(!Display.isCloseRequested()){
-			glClear(GL_COLOR_BUFFER_BIT);
+            long time = System.nanoTime() - timePrev;
+            timePrev += time;
 
-            int nVehicles = vehicles.size();
-			
+            glClear(GL_COLOR_BUFFER_BIT);
+
 			// ROAD!
 			for (int i = 0; i < width; i += 64) {
 				road.draw(i, 236);
@@ -76,35 +74,47 @@ public class GTA {
 			for (Iterator<Vehicle> it = vehicles.iterator(); it.hasNext();) {
                 Vehicle v = it.next();
                 // Delete vehicles that stand still next to road block
-				if ((Math.abs(v.pos - roadBlock.pos + v.getLength()) < 25.0/ppm) && (Math.abs(v.accel) < 0.1) && (Math.abs(v.vel) < 0.1)) {
+				if ((v.distanceTo(roadBlock) < 4.0) && (v.engineOutput() < 0.01)) {
                     System.out.println(String.format("Remove vehicle %s", v));
 					it.remove();
 				} else {
-                    v.simulate(1.0/fps, n);
+                    // Approximate a smoother simulation by integrating "in the middle" of
+                    // each time segment. See Riemann sums for theory.
+                    v.simulate(time/2e9, n);
+                    v.simulate(time/2e9, n);
                 }
                 n = v;
 			}
 
 			// Create new cars
 			while (nVehicles > vehicles.size()) {
-				Vehicle v = new Vehicle(rand.nextInt(NUM_CAR_MODELS), 0, null);
-                v.pos = -v.getLength();
+				Vehicle v = CarFactory.random().produceVehicle();
                 v.personality = Personality.standardDriver(v);
+                v.vel = 1*3.6; // 1 km/h
+                if (vehicles.size() > 0 && vehicles.getLast().pos < 0) {
+                    v.pos = vehicles.getLast().pos - v.getLength() - 2.0;
+                } else {
+                    v.pos = -width/2.0 - v.getLength();
+                }
                 vehicles.addLast(v);
+                System.out.println(String.format("Spawn vehicle %s", v));
 			}
 
             // Calculate and draw info, cars
-            double currentWattage = 0;
+            Color.white.bind();
+            double enginePower = 0;
             for (Vehicle v : vehicles) {
-                currentWattage += v.getCurrentWattage();
+                enginePower += v.getEnginePower();
                 v.draw();
-                infoText.drawString((int)(v.pos*ppm), 300-v.sprite.getHeight()/2, String.format("%.2f km/h", v.vel*3.6), Color.yellow);
+                infoText.drawString((int)(v.pos*ppm), 300-v.sprite.getHeight()/2, String.format("%.2f km/h", v.vel/3.6), Color.white);
             }
-            infoText.drawString(10, 10, String.format("CURRENT WATTAGE: %.3f W", currentWattage), Color.yellow);
+            infoText.drawString(10, 10, String.format("TOTAL ENGINE POWER: %.3f W", enginePower), Color.yellow);
             Color.white.bind();
 
             Display.update();
-			Display.sync(fps);
+			if (vSync) {
+                Display.sync(fps);
+            }
 		}
 		Display.destroy();
 	}

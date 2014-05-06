@@ -1,69 +1,30 @@
-import org.newdawn.slick.Color;
-
 public class Vehicle {
-	final double ppm = 10; // Pixels per meter, also set in GTA.java (not very neat, I know)
     double mass;      // (kg)
     double pos = 0;   // (m)
     double vel = 0;   // (m/s)
     double accel = 0; // (m/s^2)
+    double wantedAccel = 0;
+    double frontArea = 0; // m^2
+    double maxEngineForce = 0;
     Personality personality;
     Sprite sprite;
-    
+
+    Vehicle(Sprite sprite, double mass, double frontArea, double maxEngineForce) {
+        this.sprite = sprite;
+        this.mass = mass;
+        this.frontArea = frontArea;
+        this.maxEngineForce = maxEngineForce;
+    }
+
     /**
-     * Constructor
-     * @param vehicleType
-     * @param pos
-     * @param personality
+     * The distance from the front of this vehicle to the back of the next.
      */
-    public Vehicle(int vehicleType, double pos, Personality personality) {
-        this.pos = pos;
-        this.personality = personality;
-        switch (vehicleType) {
-        case 0:
-        	sprite = new Sprite("res/bus.png", 39, 120);
-        	mass = 5000;
-        	break;
-        case 1:
-        	sprite = new Sprite("res/mc.png", 19, 46);
-        	mass = 200;
-        	break;
-        case 2:
-        	sprite = new Sprite("res/police.png", 33, 64);
-        	mass = 1000;
-        	break;
-		case 3:
-        	sprite = new Sprite("res/small_truck.png", 29, 64);
-        	mass = 2000;
-        	break;
-		case 4:
-        	sprite = new Sprite("res/sports.png", 33, 64);
-        	mass = 900;
-        	break;
-		case 5:
-        	sprite = new Sprite("res/taxi.png", 33, 64);
-        	mass = 1000;
-        	break;
-		case 6:
-        	sprite = new Sprite("res/truck.png", 44, 124);
-			mass = 12000;
-			break;
-		default:
-			System.err.println("No such vehicle: " + vehicleType);
-			System.exit(1);
-			break;
-        }
-        
-        // Initial speed
-        vel = 25;
-    }    
-    
-    
-    public double getLength() {
-    	return sprite.getWidth()/ppm;
+    double distanceTo(Vehicle next) {
+        return next.pos - (this.pos + this.getLength());
     }
     
-    public double getMyAssPosition() {
-    	return pos;
+    public double getLength() {
+    	return sprite.getWidth()/GTA.ppm;
     }
     
     /**
@@ -73,39 +34,82 @@ public class Vehicle {
      * @param next Next vehicle, null if no next vehicle exists
      */
     public void simulate(double time, Vehicle next) {
-        accel = personality.getWantedAcceleration(this, next);
-        // Approximate a smoother simulation by integrating "in the middle" of
-        // each quantized acceleration segment. See Riemann sums for theory.
-        double deltaVel = accel*time/2.0;
-        vel += deltaVel;
+        wantedAccel = personality.getWantedAcceleration(this, next);
+        // No reverse gear! NEVER LOOK BACK!!! NO TOMORROW!!!!
+        if (wantedAccel < 0 && vel < 0.1) {
+            wantedAccel = 0;
+        }
+        //System.err.println(engineForce() + ", " + brakeForce());
+        accel = (engineForce() + brakeForce() + windForce())/mass;
+        vel += accel*time;
     	pos += vel*time;
-        vel += deltaVel;
+    }
+
+    // The drag coefficient is in [0.20, 0.30] for cars.
+    static double drag = 0.19;
+    static double airDensity = 1.293; // kg/m^3
+
+    /**
+     * Force due to wind is a quadratic function of velocity, force <= 0
+     */
+    double windForce() {
+        // F_D = density * velocity^2 * drag coefficient * area / 2
+        return - vel * vel * drag * airDensity * frontArea / 2.0;
+    }
+
+    /**
+     * Velocity at equilibrium point of drag and max engine force
+     */
+    double maxVelocity() {
+        return Math.sqrt(2.0*maxEngineForce/drag/airDensity/frontArea);
+    }
+
+    /**
+     * Force we seek to apply to the car, adjusted for wind
+     */
+    double applyForce() {
+        return wantedAccel*mass - windForce();
+    }
+
+    /**
+     * Force due to engine, 0 <= force <= maxEngineForce
+     */
+    double engineForce() {
+        return Math.min(maxEngineForce, Math.max(0, applyForce()));
+    }
+
+    /**
+     * Force due to braking action, force <= 0
+     */
+    double brakeForce() {
+        return Math.min(0, applyForce());
+    }
+
+    /**
+     * Engine output amount \in [0..1]
+     */
+    double engineOutput() {
+        return engineForce() / maxEngineForce;
     }
 
     /**
      * Draw car on sprite
      */
     public void draw() {
-        sprite.draw((int)(pos*ppm), 270-sprite.getHeight()/2);
+        sprite.draw((int)(pos*GTA.ppm), 270-sprite.getHeight()/2);
     }
 
     /**
      * @return How many Joules per second this vehicle consumes at the moment.
      */
-    double getCurrentWattage() {
-        double k = 0.12345; // This is the same as 0.5*C*p*A in the formula for 
-                            // air resistance force.
-                            // should maybe depend on sqrt(mass) because of its front area
-
-        // mva + kv^3 = motor effect + wind effect
-        double Ptot = vel*(mass*accel + k*vel*vel);
-        
-        if (Ptot > 0.0) {
-            return Ptot;
-        } else {
-            return Ptot;
-        }
+    double getEnginePower() {
+        // P = E/t = Fs/t = Fv
+        return Math.abs(vel)*Math.max(0, engineForce());
     }
-    
-    
+
+    @Override
+    public String toString() {
+        return String.format("<Vehicle %s, top speed %.2f km/h, engine output=%.0f%%>",
+                sprite.toString(), maxVelocity()/3.6, engineOutput()*100);
+    }
 }

@@ -3,8 +3,8 @@
  */
 public class RoadBlock extends Vehicle {
     public RoadBlock(double pos) {
-        super(0, pos, null);
-        vel = 0;
+        super(null, 0, 0, 0);
+        this.pos = pos;
     }
 
     @Override

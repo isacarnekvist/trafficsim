@@ -16,23 +16,17 @@ public class Personality {
     }
 
     public static Personality standardDriver(Vehicle self) {
-        return new Personality(Math.log(self.mass) / 8.0, 2);
+        return new Personality(Math.log(self.mass) / 4.0, 4);
     }
 
     public double getWantedAcceleration(Vehicle self, Vehicle next) {
-        double dist = next.pos - (self.pos + self.getLength()) - tailingDistance;
-        return next.accel + 2*(dist/responseTime + (next.vel - self.vel))/responseTime;
+        double dist = self.distanceTo(next) - tailingDistance;
+        double deltaVel = next.vel - self.vel;
+
+        if (dist < 0) {
+            return -100*((self.pos + self.getLength()) - (next.pos - tailingDistance));
+        }
+
+        return next.accel + 2*(dist/responseTime + deltaVel/2.0)/responseTime;
     }
-
-    double sillyAccelerationStrategy(Vehicle self, Vehicle next) {
-        double dist = next.pos - (self.pos + self.getLength()) - tailingDistance;
-        // Model:
-        // self.pos = self.pos0 + self.vel*t + self.accel*t*t/2
-        // next.pos = next.pos0 + next.vel*t + next.accel*t*t/2
-        // We want it so that self.pos - next.pos =
-        return ((next.vel - self.vel ) + dist/responseTime)/responseTime;
-        //return -60/(Math.pow(dist, 4));
-    }
-
-
 }
