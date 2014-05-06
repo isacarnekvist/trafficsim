@@ -4,7 +4,7 @@ public class Vehicle {
 	final double ppm = 10; // Pixels per meter, also set in GTA.java (not very neat, I know)
     double mass;      // (kg)
     double pos = 0;   // (m)
-    double vel = 0;   // (m/s)
+    double vel = 0;   // (m/s) // ass possision.
     double accel = 0; // (m/s^2)
     Personality personality;
     Sprite sprite;
@@ -12,7 +12,7 @@ public class Vehicle {
     /**
      * Constructor
      * @param vehicleType
-     * @param pos
+     * @param pos The posision of the rear of the Vehicle.
      * @param personality
      */
     public Vehicle(int vehicleType, double pos, Personality personality) {
@@ -73,7 +73,6 @@ public class Vehicle {
      * @param next Next vehicle, null if no next vehicle exists
      */
     public void simulate(double time, Vehicle next) {
-    	double deltaPos = next.pos - this.pos;
     	accel = personality.getWantedAcceleration(this, next);
         // Approximate a smoother simulation by integrating "in the middle" of
         // each quantized acceleration segment. See Riemann sums for theory.
@@ -84,8 +83,13 @@ public class Vehicle {
         
         for (int i = 0; i < integrations; i++) {
         	vel += deltaVel;
+        	double deltaPos = this.pos + (this.getLength()) - next.getMyAssPosition();
+        	if((deltaPos - deltaVel) > 0){ // Stupid driver just crached his car, fortunatly for him we don't simulate death.
+        		vel = 0;
+        		return;
+        	}
         	pos += vel*timePerIntegration;
-		}       
+        	}
         
         // Cars on the road doesn't go backwards.
         if(vel < 0)
