@@ -1,7 +1,7 @@
 public class Vehicle {
     double mass;      // (kg)
     double pos = 0;   // (m)
-    double vel = 0;   // (m/s)
+    double vel = 0;   // (m/s) // ass possision.
     double accel = 0; // (m/s^2)
     double wantedAccel = 0;
     double frontArea = 0; // m^2
@@ -16,9 +16,6 @@ public class Vehicle {
         this.maxEngineForce = maxEngineForce;
     }
 
-    /**
-     * The distance from the front of this vehicle to the back of the next.
-     */
     double distanceTo(Vehicle next) {
         return next.pos - (this.pos + this.getLength());
     }
@@ -41,8 +38,29 @@ public class Vehicle {
         }
         //System.err.println(engineForce() + ", " + brakeForce());
         accel = (engineForce() + brakeForce() + windForce())/mass;
+
+        /*
         vel += accel*time;
     	pos += vel*time;
+        */
+
+    	int integrations = 100000;
+    	double deltaVel = accel*time/integrations;
+    	double timePerIntegration = time/integrations;
+        
+        for (int i = 0; i < integrations; i++) {
+            vel += deltaVel;
+            double deltaPos = this.pos + (this.getLength()) - next.getMyAssPosition();
+            if((deltaPos - deltaVel) > 0){ // Stupid driver just crached his car, fortunatly for him we don't simulate death.
+                vel = 0;
+                return;
+            }
+            pos += vel*timePerIntegration;
+        }
+        
+        // Cars on the road doesn't go backwards.
+        if(vel < 0)
+            vel = 0;
     }
 
     // The drag coefficient is in [0.20, 0.30] for cars.
@@ -90,6 +108,12 @@ public class Vehicle {
      */
     double engineOutput() {
         return engineForce() / maxEngineForce;
+=======
+    	accel = personality.getWantedAcceleration(this, next);
+        // Approximate a smoother simulation by integrating "in the middle" of
+        // each quantized acceleration segment. See Riemann sums for theory.
+        
+>>>>>>> mockelind/master
     }
 
     /**
@@ -107,9 +131,20 @@ public class Vehicle {
         return Math.abs(vel)*Math.max(0, engineForce());
     }
 
+<<<<<<< HEAD
     @Override
     public String toString() {
         return String.format("<Vehicle %s, top speed %.2f km/h, engine output=%.0f%%>",
                 sprite.toString(), maxVelocity()/3.6, engineOutput()*100);
+=======
+        // mva + kv^3 = motor effect + wind effect
+        double Ptot = vel*(mass*accel + k*vel*vel);
+        
+        if (Ptot > 0.0) {
+            return Ptot;
+        } else {
+            return 0;
+        }
+>>>>>>> mockelind/master
     }
 }
