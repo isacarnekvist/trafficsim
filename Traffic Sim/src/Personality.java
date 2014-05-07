@@ -16,7 +16,7 @@ public class Personality {
     }
 
     public static Personality standardDriver(Vehicle self) {
-        return new Personality(Math.log(self.mass) / 4.0, 4);
+        return new Personality(Math.log(self.mass) / 4.0, 3);
     }
 
     public double getWantedAcceleration(Vehicle self, Vehicle next) {
@@ -27,6 +27,6 @@ public class Personality {
             return -100*((self.pos + self.getLength()) - (next.pos - tailingDistance));
         }
 
-        return next.accel + 2*(dist/responseTime + deltaVel/2.0)/responseTime;
+        return next.accel + 2*(dist/responseTime + deltaVel)/responseTime;
     }
 }
