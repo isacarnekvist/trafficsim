@@ -12,29 +12,29 @@ import javax.swing.JPanel;
 
 public class Simulation {
     // Width of simulated world in meters
-	double width;
-	JFrame frame;
+    double width;
+    JFrame frame;
     JPanel panel;
-	Graphics g;
-	ArrayList<Vehicle> vehicles;
+    Graphics g;
+    ArrayList<Vehicle> vehicles;
 
     public static void main(String[] args) {
         Simulation s = new Simulation(100, 500);
         s.run();
     }
 
-	public Simulation(double width, int screenWidth) {
-		this.width = width;
-		frame = new JFrame();
+    public Simulation(double width, int screenWidth) {
+        this.width = width;
+        frame = new JFrame();
         panel = new JPanel();
-		frame.setSize(new Dimension(screenWidth, 9*screenWidth/16));
+        frame.setSize(new Dimension(screenWidth, 9*screenWidth/16));
         panel.setSize(frame.getSize());
         frame.add(panel);
         panel.setDoubleBuffered(true);
-		frame.setVisible(true);
-		vehicles = new ArrayList<Vehicle>();
-	}
-	
+        frame.setVisible(true);
+        vehicles = new ArrayList<Vehicle>();
+    }
+    
     public void run() {
         Dimension size = panel.getSize();
         Rectangle2D bounds = new Rectangle2D.Double(0, 0, size.getWidth(), size.getHeight());
@@ -56,8 +56,8 @@ public class Simulation {
         double ySpeeds = 1.0;
         long timePrev = System.nanoTime();
         while (ySpeeds > 0) {
-        	g = buffStrat.getDrawGraphics();
-        	g.clearRect(0, 0, panel.getWidth(), panel.getHeight());
+            g = buffStrat.getDrawGraphics();
+            g.clearRect(0, 0, panel.getWidth(), panel.getHeight());
             long timeStart = System.nanoTime();
             double t = (timeStart - timePrev)/1e9;
             Vehicle p = null;
@@ -78,13 +78,13 @@ public class Simulation {
             long deltaMs = (System.nanoTime() - timeStart)/(long)1e6;
             long wait = 1000/60 - deltaMs;
             if(wait < 0) {
-            	wait = 0;
+                wait = 0;
             }
             try {
-				Thread.sleep(wait);
-			} catch (InterruptedException e) {
-				// TODO Screen sync + fix slow mother f**king car
-			}
+                Thread.sleep(wait);
+            } catch (InterruptedException e) {
+                // TODO Screen sync + fix slow mother f**king car
+            }
             timePrev = timeStart;
         }
     }
@@ -96,7 +96,7 @@ public class Simulation {
         int height = (int)(v.mass/4e3);
         int x = (int)(v.pos*scale);
         int y = (int)(size.getHeight() - height)/2;
-		g.drawRect(x, y, width, height);
+        g.drawRect(x, y, width, height);
     }
 
 }
